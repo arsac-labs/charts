@@ -25,11 +25,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
       - name: Install Helm
         uses: azure/setup-helm@v4
 
@@ -45,7 +40,16 @@ jobs:
           for chart in charts/*/; do
             if [ -f "$chart/Chart.yaml" ]; then
               chart_name=$(basename "$chart")
-              echo "Packaging $chart_name..."
+              chart_version=$(grep '^version:' "$chart/Chart.yaml" | awk '{print $2}')
+
+              # Check if this version already exists in GHCR
+              if helm pull "oci://${{ env.REGISTRY_PATH }}/${chart_name}" --version "$chart_version" 2>/dev/null; then
+                echo "Chart $chart_name version $chart_version already exists, skipping..."
+                rm -f "${chart_name}-${chart_version}.tgz"
+                continue
+              fi
+
+              echo "Packaging $chart_name version $chart_version..."
               helm package "$chart" -d .cr-release-packages
 
               for pkg in .cr-release-packages/*.tgz; do
