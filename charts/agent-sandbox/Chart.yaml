@@ -1,0 +1,20 @@
+apiVersion: v2
+name: agent-sandbox
+description: A Helm chart wrapper for kubernetes-sigs/agent-sandbox manifests
+type: application
+version: 0.1.0
+appVersion: "v0.1.0"
+home: https://github.com/kubernetes-sigs/agent-sandbox
+sources:
+  - https://github.com/kubernetes-sigs/agent-sandbox
+  - https://github.com/arsac-labs/charts
+maintainers:
+  - name: arsac
+    url: https://github.com/arsac
+keywords:
+  - agent-sandbox
+  - kubernetes
+  - sandbox
+  - ai-agents
+annotations:
+  artifacthub.io/license: Apache-2.0

@@ -1,0 +1,56 @@
+---
+name: Update Agent Sandbox
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to update to (e.g., v0.1.0)"
+        required: true
+        type: string
+  repository_dispatch:
+    types: [update-agent-sandbox]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download manifest
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/manifest.yaml" \
+            -o charts/agent-sandbox/templates/manifest.yaml
+
+      - name: Update Chart.yaml
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          CHART_VERSION="${VERSION#v}"
+          sed -i "s/^version:.*/version: ${CHART_VERSION}/" charts/agent-sandbox/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" charts/agent-sandbox/Chart.yaml
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "feat(agent-sandbox): update to ${{ steps.version.outputs.version }}"
+          title: "feat(agent-sandbox): update to ${{ steps.version.outputs.version }}"
+          body: |
+            Updates agent-sandbox chart to ${{ steps.version.outputs.version }}
+
+            Source: https://github.com/kubernetes-sigs/agent-sandbox/releases/tag/${{ steps.version.outputs.version }}
+          branch: update-agent-sandbox-${{ steps.version.outputs.version }}
+          delete-branch: true
