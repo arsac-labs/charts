@@ -43,13 +43,11 @@ jobs:
           {
             echo '{{- if .Values.extensions.enabled }}'
             curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/extensions.yaml" | \
-              awk '
-                /^---$/ { in_statefulset=0; pending_separator=1; next }
-                /^kind: StatefulSet/ { in_statefulset=1 }
-                in_statefulset { next }
-                pending_separator && !/^$/ { print "---"; pending_separator=0 }
-                !in_statefulset { print }
-              '
+              awk 'BEGIN { skip=0 }
+                   /^---$/ { skip=0; next }
+                   /^kind: StatefulSet/ { skip=1 }
+                   skip { next }
+                   { print }'
             echo '{{- end }}'
           } > charts/agent-sandbox/templates/extensions.yaml
 
