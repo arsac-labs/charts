@@ -30,11 +30,20 @@ jobs:
             echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Download manifest
+      - name: Download manifests
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+
+          # Download core manifest
           curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/manifest.yaml" \
             -o charts/agent-sandbox/templates/manifest.yaml
+
+          # Download extensions manifest and wrap with Helm conditional
+          {
+            echo '{{- if .Values.extensions.enabled }}'
+            curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/extensions.yaml"
+            echo '{{- end }}'
+          } > charts/agent-sandbox/templates/extensions.yaml
 
       - name: Update Chart.yaml
         run: |

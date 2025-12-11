@@ -37,13 +37,38 @@ spec:
   chartRef:
     kind: OCIRepository
     name: agent-sandbox
+  values:
+    extensions:
+      enabled: true  # Enable SandboxTemplate, SandboxClaim, SandboxWarmPool
 ```
 
 ### With Helm CLI
 
 ```bash
+# Core only
 helm install agent-sandbox oci://ghcr.io/arsac-labs/charts/agent-sandbox --version 0.1.0
+
+# With extensions
+helm install agent-sandbox oci://ghcr.io/arsac-labs/charts/agent-sandbox --version 0.1.0 --set extensions.enabled=true
 ```
+
+## Configuration
+
+### agent-sandbox
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `extensions.enabled` | Enable extensions (SandboxTemplate, SandboxClaim, SandboxWarmPool) | `false` |
+
+#### Extensions
+
+When `extensions.enabled: true`, the following additional CRDs and controllers are installed:
+
+| Resource | Purpose |
+|----------|---------|
+| **SandboxTemplate** | Reusable templates for creating Sandboxes |
+| **SandboxClaim** | Create Sandboxes from templates (simplified UX) |
+| **SandboxWarmPool** | Pre-warmed pool for faster Sandbox allocation |
 
 ## Updating Charts
 

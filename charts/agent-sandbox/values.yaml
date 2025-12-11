@@ -1,0 +1,9 @@
+# Default values for agent-sandbox
+# This is a YAML-formatted file.
+
+# Extensions provide additional CRDs and controllers:
+# - SandboxTemplate: Reusable templates for creating Sandboxes
+# - SandboxClaim: Create Sandboxes from templates (simplified UX)
+# - SandboxWarmPool: Pre-warmed pool for faster Sandbox allocation
+extensions:
+  enabled: false
