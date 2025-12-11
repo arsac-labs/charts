@@ -1,9 +1,12 @@
 # Default values for agent-sandbox
 # This is a YAML-formatted file.
 
-# Extensions provide additional CRDs and controllers:
+# Extensions replaces the base manifest with a superset that includes:
 # - SandboxTemplate: Reusable templates for creating Sandboxes
 # - SandboxClaim: Create Sandboxes from templates (simplified UX)
 # - SandboxWarmPool: Pre-warmed pool for faster Sandbox allocation
+#
+# When enabled: installs extensions.yaml (includes core + extensions)
+# When disabled: installs manifest.yaml (core only)
 extensions:
   enabled: false

@@ -34,11 +34,14 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
 
-          # Download core manifest
-          curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/manifest.yaml" \
-            -o charts/agent-sandbox/templates/manifest.yaml
+          # Download core manifest (used when extensions disabled)
+          {
+            echo '{{- if not .Values.extensions.enabled }}'
+            curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/manifest.yaml"
+            echo '{{- end }}'
+          } > charts/agent-sandbox/templates/manifest.yaml
 
-          # Download extensions manifest and wrap with Helm conditional
+          # Download extensions manifest (superset, used when extensions enabled)
           {
             echo '{{- if .Values.extensions.enabled }}'
             curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/extensions.yaml"

@@ -1,3 +1,4 @@
+{{- if not .Values.extensions.enabled }}
 ---
 kind: Namespace
 apiVersion: v1
@@ -4109,3 +4110,4 @@ rules:
   - patch
   - update
 ---
+{{- end }}
