@@ -34,17 +34,22 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
 
-          # Download core manifest (used when extensions disabled)
-          {
-            echo '{{- if not .Values.extensions.enabled }}'
-            curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/manifest.yaml"
-            echo '{{- end }}'
-          } > charts/agent-sandbox/templates/manifest.yaml
+          # Download core manifest and inject conditional --extensions arg into StatefulSet
+          curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/manifest.yaml" | \
+            sed '/image: registry.k8s.io\/agent-sandbox\/agent-sandbox-controller/a\        {{- if .Values.extensions.enabled }}\n        args:\n        - "--extensions"\n        {{- end }}' \
+            > charts/agent-sandbox/templates/manifest.yaml
 
-          # Download extensions manifest (superset, used when extensions enabled)
+          # Download extensions manifest, remove StatefulSet (it's in manifest.yaml), wrap with conditional
           {
             echo '{{- if .Values.extensions.enabled }}'
-            curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/extensions.yaml"
+            curl -sL "https://github.com/kubernetes-sigs/agent-sandbox/releases/download/${VERSION}/extensions.yaml" | \
+              awk '
+                /^---$/ { in_statefulset=0; pending_separator=1; next }
+                /^kind: StatefulSet/ { in_statefulset=1 }
+                in_statefulset { next }
+                pending_separator && !/^$/ { print "---"; pending_separator=0 }
+                !in_statefulset { print }
+              '
             echo '{{- end }}'
           } > charts/agent-sandbox/templates/extensions.yaml
 
